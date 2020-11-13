@@ -1,65 +1,83 @@
 import Head from 'next/head'
-import styles from '../styles/Home.module.css'
+import Link from 'next/link'
 
-export default function Home() {
+function fetchMe() {
+  return fetch("https://js-lessons-a0fc7.firebaseio.com/me.json")
+}
+
+function fetchProjectList() {
+  return fetch("https://js-lessons-a0fc7.firebaseio.com/projects.json")
+}
+
+function fetchTechnologyList() {
+  return fetch("https://js-lessons-a0fc7.firebaseio.com/technologies.json")
+}
+
+export default function Home(props) {
+  const { projectListData, technologyListData } = props;
+  const { name, about, welcomeMessage, contact, picture, cv, cvLinkText} = props.meData;
   return (
-    <div className={styles.container}>
+    <div>
       <Head>
-        <title>Create Next App</title>
+        <title>{name} - {about}</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
+      <h1>Portfolio</h1>
+      <p>{welcomeMessage} {name}</p>
+      <img src={picture} />
+      <p>
+        <a href={`mailto:${contact.email}`}>{contact.emailLinkText}</a> <br/>
+        <a target="_blank" href={contact.github}>{contact.githubLinkText}</a> <br/>
+        <a target="_blank" href={contact.instagram}>{contact.instagramLinkText}</a> <br/>
+        <a target="_blank" href={contact.linkedin}>{contact.linkedinLinkText}</a> <br/>
+        <a href={`tel:${contact.phone}`}>{contact.phoneLinkText}</a>
+      </p>
+      <p>
+        <a target="_blank" href={cv}>{cvLinkText}</a>
+      </p>
 
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
 
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
+      <h2>Projects</h2>
+      <Link href="/projects">See all projects</Link>
+      {Object.entries(projectListData).map((item, index) => {
+        const projectName = item[0]
+        const projectData = item[1]
+        return (
+          <p key={index}>
+            <Link href={`/projects/${projectName}`}>{projectData.name}</Link>
+          </p>
+        )
+      })}
 
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/import?filter=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
-        </a>
-      </footer>
+      <h2>Technologies</h2>
+      {Object.entries(technologyListData).map((item, index) => {
+        const technologyData = item[1]
+        return (
+          <p key={index}>
+            <a target="_blank" href={technologyData.link}>{technologyData.name}</a>
+          </p>
+        )
+      })}
+      
     </div>
   )
+}
+
+export async function getServerSideProps() {
+  const data = await fetchMe()
+  const meData = await data.json()
+
+  const projectData = await fetchProjectList()
+  const projectListData = await projectData.json()
+
+  const technologyData = await fetchTechnologyList()
+  const technologyListData = await technologyData.json()
+
+  return {
+    props: {
+      meData,
+      projectListData,
+      technologyListData
+    }
+  }
 }
